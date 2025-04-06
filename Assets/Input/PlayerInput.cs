@@ -198,6 +198,74 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""OnHand"",
+            ""id"": ""eb43edc5-23a2-460e-b41b-6c4e01aeccef"",
+            ""actions"": [
+                {
+                    ""name"": ""Pickup"",
+                    ""type"": ""Button"",
+                    ""id"": ""3bcbb27e-745d-49bb-ac65-fa1097981bb8"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Rotate"",
+                    ""type"": ""Button"",
+                    ""id"": ""c44699e3-664b-456f-9393-af6ed18759a8"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Throw"",
+                    ""type"": ""Button"",
+                    ""id"": ""dd1dc396-a0d8-4d51-bbff-861829da786f"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""72d72793-a098-4dc9-afea-85d264559151"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Pickup"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""db4a226a-a331-4945-a5ea-1e3aee688a75"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": ""Hold"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Rotate"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""86e8c3b0-2e7b-4e0c-8455-6775a0230c13"",
+                    ""path"": ""<Keyboard>/t"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Throw"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": []
@@ -207,11 +275,17 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         m_OnFoot_Movement = m_OnFoot.FindAction("Movement", throwIfNotFound: true);
         m_OnFoot_Jump = m_OnFoot.FindAction("Jump", throwIfNotFound: true);
         m_OnFoot_Look = m_OnFoot.FindAction("Look", throwIfNotFound: true);
+        // OnHand
+        m_OnHand = asset.FindActionMap("OnHand", throwIfNotFound: true);
+        m_OnHand_Pickup = m_OnHand.FindAction("Pickup", throwIfNotFound: true);
+        m_OnHand_Rotate = m_OnHand.FindAction("Rotate", throwIfNotFound: true);
+        m_OnHand_Throw = m_OnHand.FindAction("Throw", throwIfNotFound: true);
     }
 
     ~@PlayerInput()
     {
         UnityEngine.Debug.Assert(!m_OnFoot.enabled, "This will cause a leak and performance issues, PlayerInput.OnFoot.Disable() has not been called.");
+        UnityEngine.Debug.Assert(!m_OnHand.enabled, "This will cause a leak and performance issues, PlayerInput.OnHand.Disable() has not been called.");
     }
 
     /// <summary>
@@ -401,6 +475,124 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
     /// Provides a new <see cref="OnFootActions" /> instance referencing this action map.
     /// </summary>
     public OnFootActions @OnFoot => new OnFootActions(this);
+
+    // OnHand
+    private readonly InputActionMap m_OnHand;
+    private List<IOnHandActions> m_OnHandActionsCallbackInterfaces = new List<IOnHandActions>();
+    private readonly InputAction m_OnHand_Pickup;
+    private readonly InputAction m_OnHand_Rotate;
+    private readonly InputAction m_OnHand_Throw;
+    /// <summary>
+    /// Provides access to input actions defined in input action map "OnHand".
+    /// </summary>
+    public struct OnHandActions
+    {
+        private @PlayerInput m_Wrapper;
+
+        /// <summary>
+        /// Construct a new instance of the input action map wrapper class.
+        /// </summary>
+        public OnHandActions(@PlayerInput wrapper) { m_Wrapper = wrapper; }
+        /// <summary>
+        /// Provides access to the underlying input action "OnHand/Pickup".
+        /// </summary>
+        public InputAction @Pickup => m_Wrapper.m_OnHand_Pickup;
+        /// <summary>
+        /// Provides access to the underlying input action "OnHand/Rotate".
+        /// </summary>
+        public InputAction @Rotate => m_Wrapper.m_OnHand_Rotate;
+        /// <summary>
+        /// Provides access to the underlying input action "OnHand/Throw".
+        /// </summary>
+        public InputAction @Throw => m_Wrapper.m_OnHand_Throw;
+        /// <summary>
+        /// Provides access to the underlying input action map instance.
+        /// </summary>
+        public InputActionMap Get() { return m_Wrapper.m_OnHand; }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Enable()" />
+        public void Enable() { Get().Enable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Disable()" />
+        public void Disable() { Get().Disable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.enabled" />
+        public bool enabled => Get().enabled;
+        /// <summary>
+        /// Implicitly converts an <see ref="OnHandActions" /> to an <see ref="InputActionMap" /> instance.
+        /// </summary>
+        public static implicit operator InputActionMap(OnHandActions set) { return set.Get(); }
+        /// <summary>
+        /// Adds <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <param name="instance">Callback instance.</param>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c> or <paramref name="instance"/> have already been added this method does nothing.
+        /// </remarks>
+        /// <seealso cref="OnHandActions" />
+        public void AddCallbacks(IOnHandActions instance)
+        {
+            if (instance == null || m_Wrapper.m_OnHandActionsCallbackInterfaces.Contains(instance)) return;
+            m_Wrapper.m_OnHandActionsCallbackInterfaces.Add(instance);
+            @Pickup.started += instance.OnPickup;
+            @Pickup.performed += instance.OnPickup;
+            @Pickup.canceled += instance.OnPickup;
+            @Rotate.started += instance.OnRotate;
+            @Rotate.performed += instance.OnRotate;
+            @Rotate.canceled += instance.OnRotate;
+            @Throw.started += instance.OnThrow;
+            @Throw.performed += instance.OnThrow;
+            @Throw.canceled += instance.OnThrow;
+        }
+
+        /// <summary>
+        /// Removes <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <remarks>
+        /// Calling this method when <paramref name="instance" /> have not previously been registered has no side-effects.
+        /// </remarks>
+        /// <seealso cref="OnHandActions" />
+        private void UnregisterCallbacks(IOnHandActions instance)
+        {
+            @Pickup.started -= instance.OnPickup;
+            @Pickup.performed -= instance.OnPickup;
+            @Pickup.canceled -= instance.OnPickup;
+            @Rotate.started -= instance.OnRotate;
+            @Rotate.performed -= instance.OnRotate;
+            @Rotate.canceled -= instance.OnRotate;
+            @Throw.started -= instance.OnThrow;
+            @Throw.performed -= instance.OnThrow;
+            @Throw.canceled -= instance.OnThrow;
+        }
+
+        /// <summary>
+        /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="OnHandActions.UnregisterCallbacks(IOnHandActions)" />.
+        /// </summary>
+        /// <seealso cref="OnHandActions.UnregisterCallbacks(IOnHandActions)" />
+        public void RemoveCallbacks(IOnHandActions instance)
+        {
+            if (m_Wrapper.m_OnHandActionsCallbackInterfaces.Remove(instance))
+                UnregisterCallbacks(instance);
+        }
+
+        /// <summary>
+        /// Replaces all existing callback instances and previously registered input action callbacks associated with them with callbacks provided via <param cref="instance" />.
+        /// </summary>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c>, calling this method will only unregister all existing callbacks but not register any new callbacks.
+        /// </remarks>
+        /// <seealso cref="OnHandActions.AddCallbacks(IOnHandActions)" />
+        /// <seealso cref="OnHandActions.RemoveCallbacks(IOnHandActions)" />
+        /// <seealso cref="OnHandActions.UnregisterCallbacks(IOnHandActions)" />
+        public void SetCallbacks(IOnHandActions instance)
+        {
+            foreach (var item in m_Wrapper.m_OnHandActionsCallbackInterfaces)
+                UnregisterCallbacks(item);
+            m_Wrapper.m_OnHandActionsCallbackInterfaces.Clear();
+            AddCallbacks(instance);
+        }
+    }
+    /// <summary>
+    /// Provides a new <see cref="OnHandActions" /> instance referencing this action map.
+    /// </summary>
+    public OnHandActions @OnHand => new OnHandActions(this);
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "OnFoot" which allows adding and removing callbacks.
     /// </summary>
@@ -429,5 +621,34 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnLook(InputAction.CallbackContext context);
+    }
+    /// <summary>
+    /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "OnHand" which allows adding and removing callbacks.
+    /// </summary>
+    /// <seealso cref="OnHandActions.AddCallbacks(IOnHandActions)" />
+    /// <seealso cref="OnHandActions.RemoveCallbacks(IOnHandActions)" />
+    public interface IOnHandActions
+    {
+        /// <summary>
+        /// Method invoked when associated input action "Pickup" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnPickup(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Rotate" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnRotate(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Throw" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnThrow(InputAction.CallbackContext context);
     }
 }
