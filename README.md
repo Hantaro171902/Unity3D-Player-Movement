@@ -40,5 +40,5 @@ This is the step-by-step video that I followed
 
 [![Watch on YouTube](https://img.youtube.com/vi/rJqP5EesxLk/0.jpg)](https://www.youtube.com/watch?v=rJqP5EesxLk)
 
-### Thank you ᓚᘏᗢ for watching
+### 💌 Thank you ᓚᘏᗢ for watching 💌
 
